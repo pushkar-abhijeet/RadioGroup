@@ -1,58 +1,56 @@
-
 import { LightningElement, api, track } from 'lwc';
 
 export default class RadioGroup extends LightningElement {
 
-  @api label = '';
-  @api value = '';
-  @api name = 'CustomRadioGroup';
-  @api options = [];
-  @api orientation = 'vertical';
+    @api label = '';
+    @api value = '';
+    @api name = 'CustomRadioGroup';
+    @api options = [];
+    @api disabled = false;
+    @api orientation = 'vertical';
+    @track _options = [];
+    @track _value = '';
+    connectedCallback(){
+        this._value = this.value;
+        this._options = this.options.map((opt, ind) => ({
+            label: opt.label,
+            value: opt.value,
+            checked: this.value == opt.value,
+            key: ind,
+            inputClass: `radio-input-${ind}`
+        }));
+    }
+    handleClick(event) {
+        if (this.disabled) {
+            return;
+        }
+        let key = event.currentTarget.dataset.key;
+        if (!key && key !== 0) {
+            return;
+        }
+        let input = this.template.querySelector(`.radio-input-${key}`);
+        if (!input) {
+            return;
+        }
 
-  @track options_ = [];
-  @track value_ = '';
-
-  connectedCallback(){
-    this.value_ = this.value;
-    this.options.forEach( (option,index) => {
-      let option_ = JSON.parse(JSON.stringify(option));
-      if (this.value == option_.value ) {
-        option_.checked = true;
-      }
-      option_.key = index;
-      option_.inputClass = `radio-input-${index}`;
-      this.options_.push (option_);
-    });
-  }
-
-  handleClick(event) {
-    let key = event.currentTarget.dataset.key;
-    if ( key == undefined || key == null){
-      return;
+        //make the input checked
+        input.checked = true;
+        this._value = input.value;
+        
+        this.dispatchChange(input.value);
+    }
+    get radioClass(){
+        return `slds-radio ${this.orientation == 'horizontal' ? 'horizontal' : ''}`;
     }
 
-    let input = this.template.querySelector(`.radio-input-${key}`);
-    if (input == undefined){
-      return;
+    dispatchChange(value){
+        const change = new CustomEvent('change', {
+            detail: {
+                value: value
+            }
+        });
+        this.dispatchEvent(change);
     }
-    console.log(`key ${key} value ${input.value} `);
-    //make the input checked
-    input.checked = true;
-    this.value_ = input.value;
-    
-    this.dispatchChange(input.value);
-  }
-
-  get radioClass(){
-    return `slds-radio ${this.orientation == 'horizontal' ? 'horizontal' : ''}`;
-  }
-
-  dispatchChange(value){
-    const change = new CustomEvent('change', {
-      detail: { value:value}
-    });
-    this.dispatchEvent(change);
-  }
 
 
 
